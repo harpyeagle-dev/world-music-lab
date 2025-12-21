@@ -1,0 +1,10 @@
+{
+  "name": "Ethnomusicology Explorer",
+  "short_name": "EthnoExplorer",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#667eea",
+  "description": "Discover, analyze, and learn about music from around the world.",
+  "icons": []
+}
