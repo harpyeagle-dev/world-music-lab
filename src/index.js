@@ -1888,6 +1888,58 @@ function initializeScaleExplorer() {
     const scaleSelect = document.getElementById('scale-select');
     const scaleInfo = document.getElementById('scale-info');
     
+    // Replace native select with custom dropdown for better cross-browser styling
+    if (scaleSelect) {
+        const options = Array.from(scaleSelect.options).map(opt => ({ value: opt.value, label: opt.text }));
+        const customDropdown = document.createElement('div');
+        customDropdown.className = 'custom-dropdown';
+        customDropdown.innerHTML = `
+            <button class="custom-dropdown-btn" style="background: white; color: #333; border: 2px solid #333; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1em; width: 100%; max-width: 300px; text-align: left;">
+                ${options[0].label}
+            </button>
+            <div class="custom-dropdown-menu" style="display: none; background: white; border: 2px solid #333; border-top: none; border-radius: 0 0 8px 8px; position: absolute; top: 100%; left: 0; width: 100%; max-width: 300px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                ${options.map(opt => `<div class="custom-dropdown-option" data-value="${opt.value}" style="padding: 12px 20px; color: #333; cursor: pointer; font-weight: 500; hover:background: #f5f5f5;">${opt.label}</div>`).join('')}
+            </div>
+        `;
+        customDropdown.style.position = 'relative';
+        customDropdown.style.display = 'inline-block';
+        customDropdown.style.marginBottom = '15px';
+        customDropdown.style.width = '100%';
+        customDropdown.style.maxWidth = '300px';
+        
+        scaleSelect.parentNode.insertBefore(customDropdown, scaleSelect);
+        scaleSelect.style.display = 'none';
+        
+        const btn = customDropdown.querySelector('.custom-dropdown-btn');
+        const menu = customDropdown.querySelector('.custom-dropdown-menu');
+        
+        btn.addEventListener('click', () => {
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        });
+        
+        customDropdown.querySelectorAll('.custom-dropdown-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const value = opt.dataset.value;
+                btn.textContent = opt.textContent;
+                scaleSelect.value = value;
+                menu.style.display = 'none';
+            });
+            opt.addEventListener('mouseover', () => {
+                opt.style.backgroundColor = '#f5f5f5';
+            });
+            opt.addEventListener('mouseout', () => {
+                opt.style.backgroundColor = 'white';
+            });
+        });
+        
+        // Close menu on outside click
+        document.addEventListener('click', (e) => {
+            if (!customDropdown.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+    }
+    
     const scales = {
         'major': { notes: ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'], info: 'The major scale is foundational in Western music, known for its bright, happy sound.' },
         'minor': { notes: ['A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4'], info: 'The natural minor scale has a darker, more melancholic sound than major.' },
