@@ -1,6 +1,8 @@
 import './styles.css';
 import { Chart } from 'chart.js/auto';
 import { jsPDF } from 'jspdf';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { AudioAnalyzer } from './audioAnalyzer.js';
 import { getAllCultures, getCultureById, matchCulture } from './culturesData.js';
 import { getAllExpandedCultures } from './expandedCultures.js';
@@ -381,6 +383,9 @@ function initializeCultureExplorer() {
     const cultures = [...basicCultures, ...expandedCultures];
     const cultureGrid = document.getElementById('culture-grid');
     
+    // Initialize world map
+    initializeWorldMap(cultures);
+    
     cultures.forEach(culture => {
         const card = document.createElement('div');
         card.className = 'culture-card';
@@ -393,6 +398,140 @@ function initializeCultureExplorer() {
         card.addEventListener('click', () => showCultureDetails(culture));
         cultureGrid.appendChild(card);
     });
+}
+
+function initializeWorldMap(cultures) {
+    const mapElement = document.getElementById('world-map');
+    if (!mapElement) return;
+    
+    // Create Leaflet map centered on world
+    const map = L.map(mapElement).setView([20, 0], 2);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+        minZoom: 2
+    }).addTo(map);
+    
+    // Define region coordinates (approx centers) and colors
+    const regionCoordinates = {
+        'East Asia': { lat: 35, lng: 105, color: '#FF6B6B' },
+        'South Asia': { lat: 20, lng: 78, color: '#4ECDC4' },
+        'West Africa': { lat: 5, lng: -5, color: '#FFE66D' },
+        'Middle East': { lat: 25, lng: 50, color: '#95E1D3' },
+        'Southeast Asia': { lat: 5, lng: 115, color: '#F38181' },
+        'Europe': { lat: 50, lng: 10, color: '#AA96DA' },
+        'Latin America': { lat: -10, lng: -60, color: '#FCBAD3' },
+        'Aboriginal Australian': { lat: -25, lng: 133, color: '#A8D8EA' },
+        'Sub-Saharan Africa': { lat: -5, lng: 20, color: '#F7DC6F' },
+        'Mediterranean': { lat: 40, lng: 15, color: '#BB8FCE' }
+    };
+    
+    // Group cultures by region and add markers
+    const regionMarkers = {};
+    const regionLegend = document.getElementById('map-legend');
+    let legendHTML = '';
+    
+    cultures.forEach(culture => {
+        const region = culture.region;
+        if (regionCoordinates[region]) {
+            const coords = regionCoordinates[region];
+            
+            if (!regionMarkers[region]) {
+                regionMarkers[region] = [];
+                // Add legend entry
+                legendHTML += `
+                    <div style="padding: 10px; background: white; border-radius: 6px; border-left: 4px solid ${coords.color}; cursor: pointer;" data-region="${region}">
+                        <strong style="color: ${coords.color};">●</strong> ${region}
+                    </div>
+                `;
+            }
+            
+            regionMarkers[region].push({
+                coords: coords,
+                culture: culture,
+                offset: regionMarkers[region].length * 0.5 // Offset for clusters
+            });
+        }
+    });
+    
+    // Add markers to map
+    Object.entries(regionMarkers).forEach(([region, markers]) => {
+        const color = regionCoordinates[region].color;
+        
+        markers.forEach(({ coords, culture, offset }) => {
+            const marker = L.circleMarker(
+                [coords.lat + offset, coords.lng + offset],
+                {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#333',
+                    weight: 2,
+                    opacity: 0.8,
+                    fillOpacity: 0.7
+                }
+            ).addTo(map);
+            
+            // Popup with culture info
+            marker.bindPopup(`
+                <div style="font-weight: bold; margin-bottom: 5px;">
+                    ${culture.emoji} ${culture.name}
+                </div>
+                <div style="font-size: 0.85em;">
+                    <strong>Region:</strong> ${culture.region}<br>
+                    <strong>Description:</strong> ${culture.description.substring(0, 60)}...
+                </div>
+            `);
+            
+            // Click to filter cultures
+            marker.on('click', () => {
+                filterCulturesByRegion(region);
+            });
+        });
+    });
+    
+    // Add legend event listeners
+    regionLegend.innerHTML = legendHTML;
+    regionLegend.querySelectorAll('[data-region]').forEach(item => {
+        item.addEventListener('click', () => {
+            const region = item.dataset.region;
+            filterCulturesByRegion(region);
+            item.style.backgroundColor = '#f0f0f0';
+            item.style.transform = 'scale(1.05)';
+        });
+    });
+    
+    // Fit map to bounds of all markers
+    const group = new L.featureGroup(Object.values(regionMarkers).flat().map(m => 
+        L.circleMarker([m.coords.lat, m.coords.lng])
+    ));
+    if (group.getLayers().length > 0) {
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+}
+
+function filterCulturesByRegion(region) {
+    const cultureCards = document.querySelectorAll('.culture-card');
+    let visibleCount = 0;
+    
+    cultureCards.forEach(card => {
+        const cardRegion = card.querySelector('p').textContent;
+        if (cardRegion === region) {
+            card.style.display = 'block';
+            card.style.opacity = '1';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+            card.style.opacity = '0.3';
+        }
+    });
+    
+    // Scroll to culture grid
+    const grid = document.getElementById('culture-grid');
+    if (grid) {
+        grid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 function showCultureDetails(culture) {

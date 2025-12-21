@@ -58,6 +58,17 @@
             <section id="explore-tab" class="tab-content active">
                 <h2>Explore Music from Different Cultures</h2>
                 <p style="margin-bottom: 20px;">Explore music from <strong>18 different cultures</strong> around the world! Click on any culture to learn more.</p>
+                
+                <!-- World Map -->
+                <div style="margin-bottom: 30px; padding: 20px; background: #f5f5f5; border-radius: 12px; border: 2px solid #667eea;">
+                    <h3 style="margin-top: 0;">🌍 World Map of Musical Origins</h3>
+                    <p style="margin-bottom: 15px; font-size: 0.95em; color: #666;">Click on a region to filter cultures by origin. Different colors represent different geographic regions.</p>
+                    <div id="world-map" style="height: 500px; border-radius: 8px; background: #e8f4f8; border: 1px solid #ccc;"></div>
+                    <div id="map-legend" style="margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; font-size: 0.9em;">
+                        <!-- Legend will be populated by JS -->
+                    </div>
+                </div>
+                
                 <div class="culture-grid" id="culture-grid"></div>                                        <button id="start-extended-quiz" class="btn-primary" style="margin-top: 20px;">
                                             Take Extended Quiz (20 Questions)
                                         </button>
