@@ -471,11 +471,12 @@ function initializeWorldMap(cultures) {
         const map = L.map(mapElement).setView([20, 0], 2);
         worldMapInstance = map;
         
-        // Add OpenStreetMap tiles with English labels
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?lang=en', {
-            attribution: '© OpenStreetMap contributors',
+        // Add CartoDB Positron tiles (English labels globally)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors, © CARTO',
             maxZoom: 19,
-            minZoom: 2
+            minZoom: 2,
+            subdomains: 'abcd'
         }).addTo(map);
 
         map.whenReady(() => {
