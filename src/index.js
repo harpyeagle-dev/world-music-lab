@@ -2656,12 +2656,28 @@ async function analyzeRecording(audioBlob) {
             if (rhythmAnalysis.peakCount > 20 && culture.characteristics.rhythm.includes('complex')) score += 2;
             if (rhythmAnalysis.peakCount < 10 && culture.characteristics.rhythm.includes('simple')) score += 1;
             
+            // Add randomization to scoring to make matches less predictable
+            // Each culture gets a random modifier between -2 and +3
+            const randomModifier = Math.floor(Math.random() * 6) - 2;
+            score += randomModifier;
+            
+            // Ensure score stays non-negative
+            score = Math.max(0, score);
+            
             if (score > 0) {
                 matches.push({ culture, score });
             }
         });
         
-        matches.sort((a, b) => b.score - a.score);
+        // Sort and add small random shuffling for ties
+        matches.sort((a, b) => {
+            if (b.score === a.score) {
+                // For tied scores, randomly determine order
+                return Math.random() - 0.5;
+            }
+            return b.score - a.score;
+        });
+        
         const topMatches = matches.slice(0, 3);
         
         let comparisonHTML = '';
