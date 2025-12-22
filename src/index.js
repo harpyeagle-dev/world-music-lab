@@ -2975,7 +2975,7 @@ function initializeComposer() {
         let reenableTimer = null;
         playBtn?.addEventListener('click', async () => {
             try {
-                if (!composer) {
+                if (!window.composer) {
                     setStatus('Composer not initialized.');
                     return;
                 }
@@ -3007,11 +3007,11 @@ function initializeComposer() {
                 }
                 
                 // console.log('Building sequence with', notesToPlay.length, 'notes');
-                composer.clearSequence();
+                window.composer.clearSequence();
                 notesToPlay.forEach(note => {
                     const frequency = 200 + (1 - note.y / canvas.height) * 600;
                     const time = (note.x / canvas.width) * 4;
-                    composer.addNote(frequency, 0.3, time);
+                    window.composer.addNote(frequency, 0.3, time);
                 });
                 
                 console.log('Playing composition with', notesToPlay.length, 'notes');
@@ -3021,7 +3021,7 @@ function initializeComposer() {
 
                 // Estimate duration to re-enable - use notesToPlay not notes
                 const totalDuration = Math.max(0, ...notesToPlay.map(n => (n.x / canvas.width) * 4 + 0.3));
-                await composer.playSequence();
+                await window.composer.playSequence();
                 console.log('Play sequence complete');
                 reenableTimer = setTimeout(() => {
                     setStatus(`Done. Notes: ${notesToPlay.length}`);
@@ -3037,8 +3037,8 @@ function initializeComposer() {
         
         stopBtn?.addEventListener('click', () => {
             try {
-                if (!composer) return;
-                composer.stop();
+                if (!window.composer) return;
+                window.composer.stop();
                 if (reenableTimer) {
                     clearTimeout(reenableTimer);
                     reenableTimer = null;
@@ -3059,21 +3059,21 @@ function initializeComposer() {
         // Export MIDI button
         document.getElementById('export-midi')?.addEventListener('click', () => {
             try {
-                if (!composer || notes.length === 0) {
+                if (!window.composer || notes.length === 0) {
                     setStatus('No composition to export.');
                     showToast('warning', 'Create a composition first');
                     return;
                 }
                 
                 // Build sequence for export
-                composer.clearSequence();
+                window.composer.clearSequence();
                 notes.forEach(note => {
                     const frequency = 200 + (1 - note.y / canvas.height) * 600;
                     const time = (note.x / canvas.width) * 4;
-                    composer.addNote(frequency, 0.3, time);
+                    window.composer.addNote(frequency, 0.3, time);
                 });
                 
-                const midiData = composer.exportToMIDI();
+                const midiData = window.composer.exportToMIDI();
                 const blob = new Blob([midiData], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
