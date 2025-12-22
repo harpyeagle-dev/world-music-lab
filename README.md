@@ -102,14 +102,15 @@ The production-ready files will be generated in the `dist/` directory.
 
 ### Deploying on GitHub Pages
 
-- Enable GitHub Pages in your repository: Settings → Pages → Source: GitHub Actions.
+- Deployment is handled automatically by GitHub Actions.
+- Ensure Pages is set to "GitHub Actions" in Settings → Pages.
 - The workflow in [.github/workflows/pages.yml](.github/workflows/pages.yml) builds and deploys on `main` pushes or manual runs.
 - After deployment, your site will be available at your repository’s Pages URL.
 
-To trigger a manual deploy:
+Manual deploy:
 
 ```bash
-# From the Actions tab, run "Deploy to GitHub Pages" workflow
+# From the Actions tab, run "Deploy to GitHub Pages"
 ```
 
 ## 🎯 How to Use
