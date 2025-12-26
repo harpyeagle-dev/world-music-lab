@@ -542,12 +542,58 @@ function initializeAudioUnlockOverlay() {
     
     const resumeAudio = async () => {
         try {
-            if (audioContext && audioContext.state === 'suspended') {
-                await audioContext.resume();
-                hide();
+            // Ensure AudioContext exists
+            if (!audioContext) {
+                try {
+                    // Prefer existing analyzer to keep graph consistent
+                    if (!audioAnalyzer) {
+                        audioAnalyzer = new AudioAnalyzer();
+                        await audioAnalyzer.initialize();
+                    }
+                    audioContext = audioAnalyzer.audioContext || new (window.AudioContext || window.webkitAudioContext)();
+                } catch (err) {
+                    // Fallback to direct AudioContext creation
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                // Create master gain if missing
+                if (!window.__MASTER_GAIN) {
+                    try {
+                        const masterGain = audioContext.createGain();
+                        masterGain.gain.value = 1.0;
+                        masterGain.connect(audioContext.destination);
+                        window.__MASTER_GAIN = masterGain;
+                    } catch (e) {
+                        console.warn('Master gain init during unlock failed:', e);
+                    }
+                }
             }
+
+            // Resume if suspended
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
+            // iOS/Safari often requires a short playback to fully unlock
+            try {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                gain.gain.value = 0.0001; // inaudible
+                osc.frequency.value = 440;
+                osc.connect(gain);
+                const master = (typeof window !== 'undefined' && window.__MASTER_GAIN) ? window.__MASTER_GAIN : null;
+                (master ? gain.connect(master) : gain.connect(audioContext.destination));
+                const now = audioContext.currentTime;
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } catch (e) {
+                // Ignore; unlock attempt still valid
+            }
+
+            hide();
+            showToast('success', 'Audio unlocked');
         } catch (e) {
             console.warn('Audio resume failed:', e);
+            showToast('error', 'Audio unlock failed. Tap Play or try again.');
         }
     };
 
@@ -630,7 +676,8 @@ function initializeWorldMap(cultures) {
         'indian-classical': { lat: 23, lng: 78, color: '#4ECDC4', region: 'South Asia' },
         'chinese-traditional': { lat: 35, lng: 110, color: '#FF6B6B', region: 'East Asia' },
         'middle-eastern': { lat: 30, lng: 45, color: '#95E1D3', region: 'Middle East' },
-        'latin-american': { lat: -15, lng: -60, color: '#FCBAD3', region: 'Latin America' },
+        // Shifted west/north to better represent continental Latin America
+        'latin-american': { lat: 0, lng: -75, color: '#FCBAD3', region: 'Latin America' },
         'aboriginal-australian': { lat: -25, lng: 133, color: '#A8D8EA', region: 'Australia' },
         'european-folk': { lat: 52, lng: 10, color: '#AA96DA', region: 'Europe' },
         'japanese-traditional': { lat: 36, lng: 138, color: '#FF6B6B', region: 'East Asia' },
