@@ -50,10 +50,12 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => 
-          caches.match(request)
-            .then(cached => cached || caches.match('/index.html'))
-        )
+        .catch(() => {
+          // Try cache; if not found, fall back to index.html within this SW's scope
+          const scopedIndex = new URL('index.html', self.location);
+          return caches.match(request)
+            .then((cached) => cached || caches.match(scopedIndex));
+        })
     );
     return;
   }

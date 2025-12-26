@@ -1,7 +1,8 @@
 {
   "name": "Ethnomusicology Explorer",
   "short_name": "EthnoExplorer",
-  "start_url": "/",
+  "start_url": "/world-music-lab/",
+  "scope": "/world-music-lab/",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#667eea",
