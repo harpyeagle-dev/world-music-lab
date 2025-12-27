@@ -1,6 +1,7 @@
 'use strict';
 
-const CACHE_NAME = 'ethno-explorer-v5-20251227';
+// Bump cache name to force clients to fetch the latest bundle/service worker
+const CACHE_NAME = 'ethno-explorer-v6-20251227';
 const RUNTIME_CACHE = 'ethno-runtime-v2';
 
 // Skip cache installation - let network handle it
